@@ -1,7 +1,6 @@
 (() => {
   let apiKey = null;
   let systemPrompt = '';
-  let culturalInstruction = 'Lean into the style and make it more pronounced and characteristic.';
   let targetLanguage = 'Korean';
 
   // Custom style settings for A, S, D, W keys
@@ -20,13 +19,12 @@
 
   // Load settings
   chrome.storage.sync.get([
-    'claudeApiKey', 'systemPrompt', 'culturalInstruction', 'targetLanguage',
+    'claudeApiKey', 'systemPrompt', 'targetLanguage',
     'styleA', 'langA', 'summaryA', 'styleS', 'langS', 'summaryS',
     'styleD', 'langD', 'summaryD', 'styleW', 'langW', 'summaryW'
   ], (result) => {
     apiKey = result.claudeApiKey;
     systemPrompt = result.systemPrompt || '';
-    culturalInstruction = result.culturalInstruction || 'Lean into the style and make it more pronounced and characteristic.';
     targetLanguage = result.targetLanguage || 'Korean';
 
     styleA = result.styleA || 'Weeb/Anime (use anime references and otaku terms)';
@@ -532,7 +530,7 @@
 
       const culturalInstructionText = language === 'Original'
         ? ''
-        : ` ${culturalInstruction}`;
+        : ' Lean into the style and make it more pronounced and characteristic.';
 
       prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstructionText}\n\nInput text:\n${text}\n\nProvide only the rewritten text, no explanation.`;
 
@@ -575,7 +573,7 @@
 
       const culturalInstructionText = language === 'Original'
         ? ''
-        : ` ${culturalInstruction}`;
+        : ' Lean into the style and make it more pronounced and characteristic.';
 
       prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstructionText}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
 

@@ -38,7 +38,6 @@ document.getElementById('save').addEventListener('click', () => {
   const settings = {
     claudeApiKey: document.getElementById('apiKey').value,
     systemPrompt: document.getElementById('systemPrompt').value,
-    culturalInstruction: document.getElementById('culturalInstruction').value,
     targetLanguage: document.getElementById('targetLanguage').value,
     styleA: document.getElementById('styleA').value,
     langA: document.getElementById('langA').value,
@@ -64,13 +63,12 @@ document.getElementById('save').addEventListener('click', () => {
 });
 
 chrome.storage.sync.get([
-  'claudeApiKey', 'systemPrompt', 'culturalInstruction', 'targetLanguage',
+  'claudeApiKey', 'systemPrompt', 'targetLanguage',
   'styleA', 'langA', 'summaryA', 'styleS', 'langS', 'summaryS',
   'styleD', 'langD', 'summaryD', 'styleW', 'langW', 'summaryW'
 ], (result) => {
   if (result.claudeApiKey) document.getElementById('apiKey').value = result.claudeApiKey;
   if (result.systemPrompt) document.getElementById('systemPrompt').value = result.systemPrompt;
-  if (result.culturalInstruction) document.getElementById('culturalInstruction').value = result.culturalInstruction;
   if (result.targetLanguage) document.getElementById('targetLanguage').value = result.targetLanguage;
   if (result.styleA) document.getElementById('styleA').value = result.styleA;
   if (result.langA) document.getElementById('langA').value = result.langA;
