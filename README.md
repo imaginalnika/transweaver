@@ -11,11 +11,11 @@ Text manipulation via LLMs **on the webpage**. Select some text in the page -> p
 
 - **e** - e.g. (examples)
 - **i** - i.e. (explanations)
-- **c** - c.f. (comparisons)
 - **l** - hyperlink
 - **s** - tl;dr
 - **b** - add bold/italic emphasis
 - **r** - rewrite
+- **t** - translate
 
 ## Setup
 
@@ -23,7 +23,8 @@ Text manipulation via LLMs **on the webpage**. Select some text in the page -> p
 2. Turn on `Developer mode` top right, then `Load unpacked` top left (select this repository's folder)
 3. Go to Options of Transweaver (click on icon)
 4. Add Claude API Key
-5. (Optional) Add system prompt
+5. (Optional) Choose translation target language (default: Korean)
+6. (Optional) Add system prompt
 
 ## Troubleshooting
 
@@ -34,4 +35,5 @@ unmap i
 unmap l
 unmap b
 unmap r
+unmap t
 ```

@@ -1,11 +1,13 @@
 (() => {
   let apiKey = null;
   let systemPrompt = '';
+  let targetLanguage = 'Korean';
 
-  // Load API key and system prompt
-  chrome.storage.sync.get(['claudeApiKey', 'systemPrompt'], (result) => {
+  // Load API key, system prompt, and target language
+  chrome.storage.sync.get(['claudeApiKey', 'systemPrompt', 'targetLanguage'], (result) => {
     apiKey = result.claudeApiKey;
     systemPrompt = result.systemPrompt || '';
+    targetLanguage = result.targetLanguage || 'Korean';
     if (apiKey) {
       console.log('Transweaver: API key loaded ✓');
     } else {
@@ -19,7 +21,7 @@
 
     if (!hasSelection) return;
 
-    const validKeys = ['e', 'i', 'c', 'l', 's', 'b', 'r'];
+    const validKeys = ['e', 'i', 'l', 's', 'b', 'r', 't'];
     if (!validKeys.includes(e.key)) return;
 
     if (!apiKey) {
@@ -36,11 +38,6 @@
     if (e.key === 'i') {
       e.preventDefault();
       appendLatinism('i.e.');
-    }
-
-    if (e.key === 'c') {
-      e.preventDefault();
-      appendLatinism('c.f.');
     }
 
     if (e.key === 'l') {
@@ -61,6 +58,11 @@
     if (e.key === 'r') {
       e.preventDefault();
       rewriteSelection();
+    }
+
+    if (e.key === 't') {
+      e.preventDefault();
+      translateSelection();
     }
   });
 
@@ -101,6 +103,39 @@
     return null;
   }
 
+  function getLocalizedLatinism(latinismType, language) {
+    const translations = {
+      'e.g.': {
+        'Korean': '예:',
+        'Japanese': '例:',
+        'Chinese': '例如',
+        'Spanish': 'p.ej.',
+        'French': 'p.ex.',
+        'German': 'z.B.',
+        'Italian': 'es.',
+        'Portuguese': 'p.ex.',
+        'Russian': 'напр.',
+        'Arabic': 'مثلاً',
+        'English': 'e.g.'
+      },
+      'i.e.': {
+        'Korean': '즉',
+        'Japanese': 'つまり',
+        'Chinese': '即',
+        'Spanish': 'es decir',
+        'French': 'c.-à-d.',
+        'German': 'd.h.',
+        'Italian': 'cioè',
+        'Portuguese': 'ou seja',
+        'Russian': 'т.е.',
+        'Arabic': 'أي',
+        'English': 'i.e.'
+      }
+    };
+
+    return translations[latinismType]?.[language] || latinismType;
+  }
+
   function appendLatinism(latinismType) {
     const textRange = getTextRange();
     if (!textRange) return;
@@ -115,8 +150,9 @@
 
     textRange.collapse(false);
 
+    const localizedLatinism = getLocalizedLatinism(latinismType, targetLanguage);
     const latinismNode = document.createElement('span');
-    latinismNode.textContent = latinismType;
+    latinismNode.textContent = localizedLatinism;
     latinismNode.style.cursor = 'pointer';
 
     const elaborationNode = document.createElement('span');
@@ -142,11 +178,9 @@
 
     let examplePrompt;
     if (latinismType === 'e.g.') {
-      examplePrompt = `dog (e.g. golden retriever, poodle)\n${text} (e.g.`;
+      examplePrompt = `dog (${localizedLatinism} golden retriever, poodle)\n${text} (${localizedLatinism}`;
     } else if (latinismType === 'i.e.') {
-      examplePrompt = `canine (i.e. a dog)\n${text} (i.e.`;
-    } else if (latinismType === 'c.f.') {
-      examplePrompt = `democracy (c.f. oligarchy, autocracy)\n${text} (c.f.`;
+      examplePrompt = `canine (${localizedLatinism} a dog)\n${text} (${localizedLatinism}`;
     }
 
     const prompt = sharedPrompt + examplePrompt;
@@ -283,6 +317,63 @@
         summaryText.innerHTML = summary;
       } else {
         summaryText.textContent = '[API error]';
+      }
+    });
+  }
+
+  function translateSelection() {
+    const selection = window.getSelection();
+    if (!selection || !selection.toString().trim()) return;
+
+    const range = selection.getRangeAt(0);
+    const text = range.toString();
+
+    // Get parent reference before modifying range
+    const startContainer = range.startContainer;
+    const parentElement = startContainer.nodeType === Node.TEXT_NODE
+      ? startContainer.parentElement
+      : startContainer;
+
+    // Gray out the original text
+    const graySpan = document.createElement('span');
+    graySpan.style.color = '#999';
+    graySpan.appendChild(range.extractContents());
+    range.insertNode(graySpan);
+
+    // Clear selection
+    selection.removeAllRanges();
+
+    // Create translation container
+    const translationContainer = document.createElement('div');
+    translationContainer.style.marginBottom = '8px';
+
+    const translationText = document.createElement('span');
+    translationContainer.appendChild(translationText);
+
+    // Insert above the grayed text
+    graySpan.parentNode.insertBefore(translationContainer, graySpan);
+
+    // Animate dots
+    let dotCount = 0;
+    const dotInterval = setInterval(() => {
+      translationText.textContent = '.'.repeat(dotCount);
+      dotCount = (dotCount + 1) % 4;
+    }, 300);
+
+    // Create prompt
+    let prompt = '';
+    if (systemPrompt) {
+      prompt = `${systemPrompt}\n\n`;
+    }
+    prompt += `Translate the following text to ${targetLanguage}:\n\n"${text}"\n\nProvide only the translation, no explanation.`;
+
+    // Call Claude API
+    callClaude(prompt, (translation) => {
+      clearInterval(dotInterval);
+      if (translation) {
+        translationText.textContent = translation;
+      } else {
+        translationText.textContent = '[API error]';
       }
     });
   }

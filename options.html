@@ -17,7 +17,7 @@
       margin-bottom: 5px;
       font-weight: bold;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 8px;
       margin-bottom: 10px;
@@ -44,10 +44,24 @@
   </style>
 </head>
 <body>
-  <h3>Vimtext Settings</h3>
+  <h3>Transweaver Settings</h3>
   <p>Text manipulation via LLMs on the webpage.</p>
   <label for="apiKey">Claude API Key:</label>
   <input type="password" id="apiKey" placeholder="sk-ant-...">
+  <label for="targetLanguage">Translation Target Language:</label>
+  <select id="targetLanguage">
+    <option value="Korean">Korean</option>
+    <option value="Japanese">Japanese</option>
+    <option value="Chinese">Chinese</option>
+    <option value="Spanish">Spanish</option>
+    <option value="French">French</option>
+    <option value="German">German</option>
+    <option value="Italian">Italian</option>
+    <option value="Portuguese">Portuguese</option>
+    <option value="Russian">Russian</option>
+    <option value="Arabic">Arabic</option>
+    <option value="English">English</option>
+  </select>
   <label for="systemPrompt">System Prompt (optional):</label>
   <textarea id="systemPrompt" placeholder="Additional instructions for Claude..."></textarea>
   <button id="save">Save</button>
