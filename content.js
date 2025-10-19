@@ -530,7 +530,7 @@
 
       const culturalInstruction = language === 'Original'
         ? ''
-        : ' Make it comical and fun, using internet meme-y language that fits the culture of the target language.';
+        : ' Go completely unhinged and extreme with the style - turn it into an exaggerated caricature that pushes the style to its absolute limits.';
 
       prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${text}\n\nProvide only the rewritten text, no explanation.`;
 
@@ -573,7 +573,7 @@
 
       const culturalInstruction = language === 'Original'
         ? ''
-        : ' Make it comical and fun, using internet meme-y language that fits the culture of the target language.';
+        : ' Go completely unhinged and extreme with the style - turn it into an exaggerated caricature that pushes the style to its absolute limits.';
 
       prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
 
