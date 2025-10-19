@@ -6,17 +6,22 @@
   // Custom style settings for A, S, D, W keys
   let styleA = 'Weeb/Anime (use anime references and otaku terms)';
   let langA = 'Original';
+  let summaryA = false;
   let styleS = 'Trump (superlatives, simple sentences, tremendous)';
   let langS = 'Original';
-  let styleD = '디시말투 (Korean DC Inside internet slang)';
+  let summaryS = false;
+  let styleD = '천박한 디시 (vulgar Korean DC Inside style)';
   let langD = 'Korean';
+  let summaryD = false;
   let styleW = 'Hood (African American Vernacular English, slang)';
   let langW = 'Original';
+  let summaryW = false;
 
   // Load settings
   chrome.storage.sync.get([
     'claudeApiKey', 'systemPrompt', 'targetLanguage',
-    'styleA', 'langA', 'styleS', 'langS', 'styleD', 'langD', 'styleW', 'langW'
+    'styleA', 'langA', 'summaryA', 'styleS', 'langS', 'summaryS',
+    'styleD', 'langD', 'summaryD', 'styleW', 'langW', 'summaryW'
   ], (result) => {
     apiKey = result.claudeApiKey;
     systemPrompt = result.systemPrompt || '';
@@ -24,12 +29,16 @@
 
     styleA = result.styleA || 'Weeb/Anime (use anime references and otaku terms)';
     langA = result.langA || 'Original';
+    summaryA = result.summaryA || false;
     styleS = result.styleS || 'Trump (superlatives, simple sentences, tremendous)';
     langS = result.langS || 'Original';
-    styleD = result.styleD || '디시말투 (Korean DC Inside internet slang)';
+    summaryS = result.summaryS || false;
+    styleD = result.styleD || '천박한 디시 (vulgar Korean DC Inside style)';
     langD = result.langD || 'Korean';
+    summaryD = result.summaryD || false;
     styleW = result.styleW || 'Hood (African American Vernacular English, slang)';
     langW = result.langW || 'Original';
+    summaryW = result.summaryW || false;
 
     if (apiKey) {
       console.log('Transweaver: API key loaded ✓');
@@ -85,22 +94,22 @@
 
     if (e.key === 'a') {
       e.preventDefault();
-      styleRewrite(styleA, langA);
+      styleRewrite(styleA, langA, summaryA);
     }
 
     if (e.key === 's') {
       e.preventDefault();
-      styleRewrite(styleS, langS);
+      styleRewrite(styleS, langS, summaryS);
     }
 
     if (e.key === 'd') {
       e.preventDefault();
-      styleRewrite(styleD, langD);
+      styleRewrite(styleD, langD, summaryD);
     }
 
     if (e.key === 'w') {
       e.preventDefault();
-      styleRewrite(styleW, langW);
+      styleRewrite(styleW, langW, summaryW);
     }
   });
 
@@ -464,7 +473,7 @@
     });
   }
 
-  function styleRewrite(style, language) {
+  function styleRewrite(style, language, asSummary) {
     const selection = window.getSelection();
     if (!selection || !selection.toString().trim()) return;
 
@@ -476,45 +485,109 @@
     tempDiv.appendChild(range.cloneContents());
     const html = tempDiv.innerHTML || text;
 
-    // Create placeholder span
-    const placeholder = document.createElement('span');
-    placeholder.innerHTML = html;
-    range.deleteContents();
-    range.insertNode(placeholder);
+    if (asSummary) {
+      // Summary mode: add above and gray out original
+      const startContainer = range.startContainer;
+      const parentElement = startContainer.nodeType === Node.TEXT_NODE
+        ? startContainer.parentElement
+        : startContainer;
 
-    // Clear selection
-    selection.removeAllRanges();
+      // Gray out the original text
+      const graySpan = document.createElement('span');
+      graySpan.style.color = '#999';
+      graySpan.appendChild(range.extractContents());
+      range.insertNode(graySpan);
 
-    // Animate shimmer: smooth gradient between light and dark
-    const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
-    let colorIndex = 0;
-    const shimmerInterval = setInterval(() => {
-      placeholder.style.color = colors[colorIndex];
-      colorIndex = (colorIndex + 1) % colors.length;
-    }, 80);
+      // Clear selection
+      selection.removeAllRanges();
 
-    // Create prompt
-    let prompt = '';
-    if (systemPrompt) {
-      prompt = `${systemPrompt}\n\n`;
-    }
+      // Create summary container
+      const summaryContainer = document.createElement('div');
+      summaryContainer.style.marginBottom = '8px';
 
-    const languageInstruction = language === 'Original'
-      ? 'Keep the output in the same language as the input.'
-      : `Translate the output to ${language}.`;
+      const summaryText = document.createElement('span');
+      summaryContainer.appendChild(summaryText);
 
-    prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+      // Insert above the grayed text
+      graySpan.parentNode.insertBefore(summaryContainer, graySpan);
 
-    // Call Claude API
-    callClaude(prompt, (styledHtml) => {
-      clearInterval(shimmerInterval);
-      placeholder.style.color = '';
-      if (styledHtml) {
-        placeholder.innerHTML = styledHtml;
-      } else {
-        placeholder.textContent = text;
+      // Animate dots
+      let dotCount = 0;
+      const dotInterval = setInterval(() => {
+        summaryText.textContent = '.'.repeat(dotCount);
+        dotCount = (dotCount + 1) % 4;
+      }, 300);
+
+      // Create prompt
+      let prompt = '';
+      if (systemPrompt) {
+        prompt = `${systemPrompt}\n\n`;
       }
-    });
+
+      const languageInstruction = language === 'Original'
+        ? 'Keep the output in the same language as the input.'
+        : `Translate the output to ${language}.`;
+
+      const culturalInstruction = language === 'Original'
+        ? ''
+        : ' Make it comical and fun, using internet meme-y language that fits the culture of the target language.';
+
+      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${text}\n\nProvide only the rewritten text, no explanation.`;
+
+      // Call Claude API
+      callClaude(prompt, (styledText) => {
+        clearInterval(dotInterval);
+        if (styledText) {
+          summaryText.textContent = styledText;
+        } else {
+          summaryText.textContent = '[API error]';
+        }
+      });
+    } else {
+      // In-place mode: replace with shimmer
+      const placeholder = document.createElement('span');
+      placeholder.innerHTML = html;
+      range.deleteContents();
+      range.insertNode(placeholder);
+
+      // Clear selection
+      selection.removeAllRanges();
+
+      // Animate shimmer: smooth gradient between light and dark
+      const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
+      let colorIndex = 0;
+      const shimmerInterval = setInterval(() => {
+        placeholder.style.color = colors[colorIndex];
+        colorIndex = (colorIndex + 1) % colors.length;
+      }, 80);
+
+      // Create prompt
+      let prompt = '';
+      if (systemPrompt) {
+        prompt = `${systemPrompt}\n\n`;
+      }
+
+      const languageInstruction = language === 'Original'
+        ? 'Keep the output in the same language as the input.'
+        : `Translate the output to ${language}.`;
+
+      const culturalInstruction = language === 'Original'
+        ? ''
+        : ' Make it comical and fun, using internet meme-y language that fits the culture of the target language.';
+
+      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+
+      // Call Claude API
+      callClaude(prompt, (styledHtml) => {
+        clearInterval(shimmerInterval);
+        placeholder.style.color = '';
+        if (styledHtml) {
+          placeholder.innerHTML = styledHtml;
+        } else {
+          placeholder.textContent = text;
+        }
+      });
+    }
   }
 
   function callClaude(prompt, callback) {
