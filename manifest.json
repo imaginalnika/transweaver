@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Transweaver",
+  "version": "1.0",
+  "description": "Text manipulation via LLMs on the webpage.",
+  "icons": {
+    "128": "resources/public/images/icon.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.anthropic.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

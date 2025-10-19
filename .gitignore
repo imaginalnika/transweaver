@@ -1,0 +1,5 @@
+archive/
+*~
+/claude-scripts
+*.swp
+/TODO
