@@ -12,12 +12,13 @@ Text manipulation via LLMs **on the webpage**. Select some text in the page -> p
 - **e** - e.g. (examples)
 - **i** - i.e. (explanations)
 - **l** - hyperlink
-- **s** - tl;dr
+- **Shift+S** - tl;dr
 - **b** - add bold/italic emphasis
-- **r** - rewrite
 - **t** - translate
-- **w** - weebify (anime references)
-- **Shift+T** - trumpify (Trump speaking style)
+- **a** - custom style #1 (configurable)
+- **s** - custom style #2 (configurable)
+- **d** - custom style #3 (configurable)
+- **w** - custom style #4 (configurable)
 
 ## Setup
 
@@ -25,8 +26,9 @@ Text manipulation via LLMs **on the webpage**. Select some text in the page -> p
 2. Turn on `Developer mode` top right, then `Load unpacked` top left (select this repository's folder)
 3. Go to Options of Transweaver (click on icon)
 4. Add Claude API Key
-5. (Optional) Choose translation target language (default: Korean)
-6. (Optional) Add system prompt
+5. (Optional) Configure custom styles for a/s/d/w keys - choose from 20+ styles like Weeb, Trump, 디시말투, Hood, Gen Z, etc.
+6. (Optional) Set target language for each custom style key
+7. (Optional) Add system prompt
 
 ## Troubleshooting
 
@@ -36,7 +38,9 @@ If you are using Vimium, some keys will clash. Add the following to Vimium's opt
 unmap i
 unmap l
 unmap b
-unmap r
 unmap t
-unmap T
+unmap a
+unmap s
+unmap d
+unmap w
 ```

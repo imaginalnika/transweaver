@@ -3,11 +3,34 @@
   let systemPrompt = '';
   let targetLanguage = 'Korean';
 
-  // Load API key, system prompt, and target language
-  chrome.storage.sync.get(['claudeApiKey', 'systemPrompt', 'targetLanguage'], (result) => {
+  // Custom style settings for A, S, D, W keys
+  let styleA = 'Weeb/Anime (use anime references and otaku terms)';
+  let langA = 'Original';
+  let styleS = 'Trump (superlatives, simple sentences, tremendous)';
+  let langS = 'Original';
+  let styleD = '디시말투 (Korean DC Inside internet slang)';
+  let langD = 'Korean';
+  let styleW = 'Hood (African American Vernacular English, slang)';
+  let langW = 'Original';
+
+  // Load settings
+  chrome.storage.sync.get([
+    'claudeApiKey', 'systemPrompt', 'targetLanguage',
+    'styleA', 'langA', 'styleS', 'langS', 'styleD', 'langD', 'styleW', 'langW'
+  ], (result) => {
     apiKey = result.claudeApiKey;
     systemPrompt = result.systemPrompt || '';
     targetLanguage = result.targetLanguage || 'Korean';
+
+    styleA = result.styleA || 'Weeb/Anime (use anime references and otaku terms)';
+    langA = result.langA || 'Original';
+    styleS = result.styleS || 'Trump (superlatives, simple sentences, tremendous)';
+    langS = result.langS || 'Original';
+    styleD = result.styleD || '디시말투 (Korean DC Inside internet slang)';
+    langD = result.langD || 'Korean';
+    styleW = result.styleW || 'Hood (African American Vernacular English, slang)';
+    langW = result.langW || 'Original';
+
     if (apiKey) {
       console.log('Transweaver: API key loaded ✓');
     } else {
@@ -21,7 +44,7 @@
 
     if (!hasSelection) return;
 
-    const validKeys = ['e', 'i', 'l', 's', 'b', 'r', 't', 'w', 'T'];
+    const validKeys = ['e', 'i', 'l', 'S', 'b', 't', 'a', 's', 'd', 'w'];
     if (!validKeys.includes(e.key)) return;
 
     if (!apiKey) {
@@ -45,7 +68,7 @@
       makeLink();
     }
 
-    if (e.key === 's') {
+    if (e.key === 'S' && e.shiftKey) {
       e.preventDefault();
       summarizeSelection();
     }
@@ -55,24 +78,29 @@
       boldifySelection();
     }
 
-    if (e.key === 'r') {
-      e.preventDefault();
-      rewriteSelection();
-    }
-
     if (e.key === 't' && !e.shiftKey) {
       e.preventDefault();
       translateSelection();
     }
 
-    if (e.key === 'w') {
+    if (e.key === 'a') {
       e.preventDefault();
-      weebifySelection();
+      styleRewrite(styleA, langA);
     }
 
-    if (e.key === 'T' && e.shiftKey) {
+    if (e.key === 's') {
       e.preventDefault();
-      trumpifySelection();
+      styleRewrite(styleS, langS);
+    }
+
+    if (e.key === 'd') {
+      e.preventDefault();
+      styleRewrite(styleD, langD);
+    }
+
+    if (e.key === 'w') {
+      e.preventDefault();
+      styleRewrite(styleW, langW);
     }
   });
 
@@ -436,7 +464,7 @@
     });
   }
 
-  function rewriteSelection() {
+  function styleRewrite(style, language) {
     const selection = window.getSelection();
     if (!selection || !selection.toString().trim()) return;
 
@@ -470,110 +498,19 @@
     if (systemPrompt) {
       prompt = `${systemPrompt}\n\n`;
     }
-    prompt += `Rewrite the following text to improve clarity and readability:\n\n${text}\n\nReturn the rewritten text as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+
+    const languageInstruction = language === 'Original'
+      ? 'Keep the output in the same language as the input.'
+      : `Translate the output to ${language}.`;
+
+    prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
 
     // Call Claude API
-    callClaude(prompt, (rewrittenHtml) => {
+    callClaude(prompt, (styledHtml) => {
       clearInterval(shimmerInterval);
       placeholder.style.color = '';
-      if (rewrittenHtml) {
-        placeholder.innerHTML = rewrittenHtml;
-      } else {
-        placeholder.textContent = text;
-      }
-    });
-  }
-
-  function weebifySelection() {
-    const selection = window.getSelection();
-    if (!selection || !selection.toString().trim()) return;
-
-    const range = selection.getRangeAt(0);
-    const text = range.toString();
-
-    // Create a temporary div to get HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(range.cloneContents());
-    const html = tempDiv.innerHTML || text;
-
-    // Create placeholder span
-    const placeholder = document.createElement('span');
-    placeholder.innerHTML = html;
-    range.deleteContents();
-    range.insertNode(placeholder);
-
-    // Clear selection
-    selection.removeAllRanges();
-
-    // Animate shimmer: smooth gradient between light and dark
-    const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
-    let colorIndex = 0;
-    const shimmerInterval = setInterval(() => {
-      placeholder.style.color = colors[colorIndex];
-      colorIndex = (colorIndex + 1) % colors.length;
-    }, 80);
-
-    // Create prompt
-    let prompt = '';
-    if (systemPrompt) {
-      prompt = `${systemPrompt}\n\n`;
-    }
-    prompt += `Rewrite the following text with anime/manga references and examples. Make it weeb-friendly - use anime characters, shows, and concepts to illustrate points. Keep the core meaning but add otaku flavor:\n\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
-
-    // Call Claude API
-    callClaude(prompt, (weebHtml) => {
-      clearInterval(shimmerInterval);
-      placeholder.style.color = '';
-      if (weebHtml) {
-        placeholder.innerHTML = weebHtml;
-      } else {
-        placeholder.textContent = text;
-      }
-    });
-  }
-
-  function trumpifySelection() {
-    const selection = window.getSelection();
-    if (!selection || !selection.toString().trim()) return;
-
-    const range = selection.getRangeAt(0);
-    const text = range.toString();
-
-    // Create a temporary div to get HTML content
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(range.cloneContents());
-    const html = tempDiv.innerHTML || text;
-
-    // Create placeholder span
-    const placeholder = document.createElement('span');
-    placeholder.innerHTML = html;
-    range.deleteContents();
-    range.insertNode(placeholder);
-
-    // Clear selection
-    selection.removeAllRanges();
-
-    // Animate shimmer: smooth gradient between light and dark
-    const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
-    let colorIndex = 0;
-    const shimmerInterval = setInterval(() => {
-      placeholder.style.color = colors[colorIndex];
-      colorIndex = (colorIndex + 1) % colors.length;
-    }, 80);
-
-    // Create prompt
-    let prompt = '';
-    if (systemPrompt) {
-      prompt = `${systemPrompt}\n\n`;
-    }
-    prompt += `Rewrite the following text in Donald Trump's speaking style. Use his characteristic superlatives (tremendous, incredible, the best), simple declarative sentences, repetition, and confident assertions. Make it sound like Trump is explaining this:\n\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
-
-    // Call Claude API
-    callClaude(prompt, (trumpHtml) => {
-      clearInterval(shimmerInterval);
-      placeholder.style.color = '';
-      if (trumpHtml) {
-        placeholder.innerHTML = trumpHtml;
+      if (styledHtml) {
+        placeholder.innerHTML = styledHtml;
       } else {
         placeholder.textContent = text;
       }
