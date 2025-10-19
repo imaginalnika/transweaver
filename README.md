@@ -16,6 +16,8 @@ Text manipulation via LLMs **on the webpage**. Select some text in the page -> p
 - **b** - add bold/italic emphasis
 - **r** - rewrite
 - **t** - translate
+- **w** - weebify (anime references)
+- **Shift+T** - trumpify (Trump speaking style)
 
 ## Setup
 
@@ -36,4 +38,5 @@ unmap l
 unmap b
 unmap r
 unmap t
+unmap T
 ```

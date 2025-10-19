@@ -21,7 +21,7 @@
 
     if (!hasSelection) return;
 
-    const validKeys = ['e', 'i', 'l', 's', 'b', 'r', 't'];
+    const validKeys = ['e', 'i', 'l', 's', 'b', 'r', 't', 'w', 'T'];
     if (!validKeys.includes(e.key)) return;
 
     if (!apiKey) {
@@ -60,9 +60,19 @@
       rewriteSelection();
     }
 
-    if (e.key === 't') {
+    if (e.key === 't' && !e.shiftKey) {
       e.preventDefault();
       translateSelection();
+    }
+
+    if (e.key === 'w') {
+      e.preventDefault();
+      weebifySelection();
+    }
+
+    if (e.key === 'T' && e.shiftKey) {
+      e.preventDefault();
+      trumpifySelection();
     }
   });
 
@@ -468,6 +478,102 @@
       placeholder.style.color = '';
       if (rewrittenHtml) {
         placeholder.innerHTML = rewrittenHtml;
+      } else {
+        placeholder.textContent = text;
+      }
+    });
+  }
+
+  function weebifySelection() {
+    const selection = window.getSelection();
+    if (!selection || !selection.toString().trim()) return;
+
+    const range = selection.getRangeAt(0);
+    const text = range.toString();
+
+    // Create a temporary div to get HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(range.cloneContents());
+    const html = tempDiv.innerHTML || text;
+
+    // Create placeholder span
+    const placeholder = document.createElement('span');
+    placeholder.innerHTML = html;
+    range.deleteContents();
+    range.insertNode(placeholder);
+
+    // Clear selection
+    selection.removeAllRanges();
+
+    // Animate shimmer: smooth gradient between light and dark
+    const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
+    let colorIndex = 0;
+    const shimmerInterval = setInterval(() => {
+      placeholder.style.color = colors[colorIndex];
+      colorIndex = (colorIndex + 1) % colors.length;
+    }, 80);
+
+    // Create prompt
+    let prompt = '';
+    if (systemPrompt) {
+      prompt = `${systemPrompt}\n\n`;
+    }
+    prompt += `Rewrite the following text with anime/manga references and examples. Make it weeb-friendly - use anime characters, shows, and concepts to illustrate points. Keep the core meaning but add otaku flavor:\n\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+
+    // Call Claude API
+    callClaude(prompt, (weebHtml) => {
+      clearInterval(shimmerInterval);
+      placeholder.style.color = '';
+      if (weebHtml) {
+        placeholder.innerHTML = weebHtml;
+      } else {
+        placeholder.textContent = text;
+      }
+    });
+  }
+
+  function trumpifySelection() {
+    const selection = window.getSelection();
+    if (!selection || !selection.toString().trim()) return;
+
+    const range = selection.getRangeAt(0);
+    const text = range.toString();
+
+    // Create a temporary div to get HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(range.cloneContents());
+    const html = tempDiv.innerHTML || text;
+
+    // Create placeholder span
+    const placeholder = document.createElement('span');
+    placeholder.innerHTML = html;
+    range.deleteContents();
+    range.insertNode(placeholder);
+
+    // Clear selection
+    selection.removeAllRanges();
+
+    // Animate shimmer: smooth gradient between light and dark
+    const colors = ['#333', '#333', '#333', '#444', '#555', '#666', '#777', '#888', '#999', '#aaa', '#bbb', '#ccc', '#ddd', '#ccc', '#bbb', '#aaa', '#999', '#888', '#777', '#666', '#555', '#444'];
+    let colorIndex = 0;
+    const shimmerInterval = setInterval(() => {
+      placeholder.style.color = colors[colorIndex];
+      colorIndex = (colorIndex + 1) % colors.length;
+    }, 80);
+
+    // Create prompt
+    let prompt = '';
+    if (systemPrompt) {
+      prompt = `${systemPrompt}\n\n`;
+    }
+    prompt += `Rewrite the following text in Donald Trump's speaking style. Use his characteristic superlatives (tremendous, incredible, the best), simple declarative sentences, repetition, and confident assertions. Make it sound like Trump is explaining this:\n\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+
+    // Call Claude API
+    callClaude(prompt, (trumpHtml) => {
+      clearInterval(shimmerInterval);
+      placeholder.style.color = '';
+      if (trumpHtml) {
+        placeholder.innerHTML = trumpHtml;
       } else {
         placeholder.textContent = text;
       }
