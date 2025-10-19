@@ -1,6 +1,7 @@
 (() => {
   let apiKey = null;
   let systemPrompt = '';
+  let culturalInstruction = 'Lean into the style and make it more pronounced and characteristic.';
   let targetLanguage = 'Korean';
 
   // Custom style settings for A, S, D, W keys
@@ -19,12 +20,13 @@
 
   // Load settings
   chrome.storage.sync.get([
-    'claudeApiKey', 'systemPrompt', 'targetLanguage',
+    'claudeApiKey', 'systemPrompt', 'culturalInstruction', 'targetLanguage',
     'styleA', 'langA', 'summaryA', 'styleS', 'langS', 'summaryS',
     'styleD', 'langD', 'summaryD', 'styleW', 'langW', 'summaryW'
   ], (result) => {
     apiKey = result.claudeApiKey;
     systemPrompt = result.systemPrompt || '';
+    culturalInstruction = result.culturalInstruction || 'Lean into the style and make it more pronounced and characteristic.';
     targetLanguage = result.targetLanguage || 'Korean';
 
     styleA = result.styleA || 'Weeb/Anime (use anime references and otaku terms)';
@@ -528,11 +530,11 @@
         ? 'Keep the output in the same language as the input.'
         : `Translate the output to ${language}.`;
 
-      const culturalInstruction = language === 'Original'
+      const culturalInstructionText = language === 'Original'
         ? ''
-        : ' Go completely unhinged and extreme with the style - turn it into an exaggerated caricature that pushes the style to its absolute limits.';
+        : ` ${culturalInstruction}`;
 
-      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${text}\n\nProvide only the rewritten text, no explanation.`;
+      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstructionText}\n\nInput text:\n${text}\n\nProvide only the rewritten text, no explanation.`;
 
       // Call Claude API
       callClaude(prompt, (styledText) => {
@@ -571,11 +573,11 @@
         ? 'Keep the output in the same language as the input.'
         : `Translate the output to ${language}.`;
 
-      const culturalInstruction = language === 'Original'
+      const culturalInstructionText = language === 'Original'
         ? ''
-        : ' Go completely unhinged and extreme with the style - turn it into an exaggerated caricature that pushes the style to its absolute limits.';
+        : ` ${culturalInstruction}`;
 
-      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstruction}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
+      prompt += `Rewrite the following text in this style: ${style}\n\n${languageInstruction}${culturalInstructionText}\n\nInput text:\n${html}\n\nReturn as HTML with <strong> and <em> tags where appropriate. Provide only the HTML, no explanation.`;
 
       // Call Claude API
       callClaude(prompt, (styledHtml) => {
